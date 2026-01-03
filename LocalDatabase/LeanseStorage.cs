@@ -15,7 +15,7 @@ public class LeanseStorage
 
     public LeanseStorage(string relativePath = "leanse.json")
     {
-        filePath = Path.Combine(AppContext.BaseDirectory, relativePath);
+        filePath = Path.Combine(AppContext.BaseDirectory, "data", relativePath);
         EnsureFileExists();
     }
 
