@@ -1,0 +1,12 @@
+﻿version: "3.9"
+
+services:
+  myleanse:
+    build: .
+    container_name: myleanse_service
+    restart: unless-stopped
+    environment:
+    - Token=${TELEGRAM_BOT_TOKEN}
+    volumes:
+      # Монтируем локальную папку для JSON файлов, чтобы они сохранялись вне контейнера
+      - ./data:/app/data
