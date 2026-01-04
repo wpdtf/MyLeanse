@@ -35,7 +35,7 @@ class Keyboard
         {
                 new InlineKeyboardButton[]
                 {
-                    InlineKeyboardButton.WithCallbackData("Добавить новые", "createLeanse"),
+                    InlineKeyboardButton.WithCallbackData("Очистить историю", "createLeanse"),
                 },
                 new InlineKeyboardButton[]
                 {
