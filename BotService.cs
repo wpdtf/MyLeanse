@@ -30,7 +30,22 @@ public class BotService(ILogger<BotService> logger,
             return;
         }
 
-        BotStatic._botClient = new TelegramBotClient(token);
+        var handler = new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),
+            KeepAlivePingDelay = TimeSpan.FromMinutes(1),
+            KeepAlivePingTimeout = TimeSpan.FromSeconds(30),
+            KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always
+        };
+
+        var httpClient = new HttpClient(handler)
+        {
+            Timeout = TimeSpan.FromSeconds(100)
+        };
+
+        BotStatic._botClient = new TelegramBotClient(token, httpClient);
+        
         _receiverOptions = new ReceiverOptions
         {
             AllowedUpdates =
