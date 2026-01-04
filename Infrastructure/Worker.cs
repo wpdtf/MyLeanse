@@ -13,9 +13,9 @@ public class Worker (ILogger<Worker> logger, BotService botService) : Background
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
-                await _botService.BotStartAsync();
+                await _botService.BotStartAsync(stoppingToken);
             }
-            await Task.Delay(1000, stoppingToken);
+            await Task.Delay(200, stoppingToken);
         }
     }
 }

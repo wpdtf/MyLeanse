@@ -20,7 +20,7 @@ public class BotService(ILogger<BotService> logger,
 
     private ReceiverOptions _receiverOptions;
 
-    public async Task BotStartAsync()
+    public async Task BotStartAsync(CancellationToken cancellationToken)
     {
         var token = _configuration.GetValue<string>("Token");
 
@@ -55,11 +55,9 @@ public class BotService(ILogger<BotService> logger,
             ]
         };
 
-        BotStatic._botClient.StartReceiving(UpdateAsync, Error, _receiverOptions);
+        BotStatic._botClient.StartReceiving(UpdateAsync, Error, _receiverOptions, cancellationToken);
 
-        _logger.LogInformation("Bot it`s start");
-
-        await Task.Delay(-1);
+        await Task.Delay(1800000);
     }
 
     private async Task UpdateAsync(ITelegramBotClient client, Update update, CancellationToken token)
