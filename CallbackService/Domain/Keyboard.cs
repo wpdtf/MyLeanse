@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types.ReplyMarkups;
 
-namespace MyLeanse;
+namespace MyLeanse.CallbackService.Domain;
 
 class Keyboard
 {

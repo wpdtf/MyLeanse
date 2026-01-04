@@ -1,29 +1,26 @@
 ﻿using Humanizer;
+using MyLeanse.CallbackService.Domain;
+using MyLeanse.Infrastructure;
 using MyLeanse.LocalDatabase;
 using System.Globalization;
-using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace MyLeanse.CallbackService;
 
-public class MessageCallback(LeanseStorage leanseStorage)
+public class MessageCallback(LeanseStorage leanseStorage, MessageSendAsync messageSendAsync)
 {
     private readonly LeanseStorage _leanseStorage = leanseStorage;
+    private readonly MessageSendAsync _messageSendAsync = messageSendAsync;
 
     public async Task ExecuteAsync(Update update)
     {
-        if (update.Message.From.Id == 408663065)
-            await DefaultAsync(update);
+        await DefaultAsync(update);
     }
 
     private async Task DefaultAsync(Update update)
     {
-        var info = _leanseStorage.Info();
+        var info = _leanseStorage.Info(update.Message.From.Id);
 
-        await SendMessageAsync(update.Message.Chat.Id, $"Меню\nЛинзы используются: {info.Humanize(culture: new CultureInfo("ru-RU"), precision: 2)}", Keyboard.KeyboardStart());
+        await _messageSendAsync.SendMessage(update.Message.Chat.Id, $"Меню\nЛинзы используются: {info.Humanize(culture: new CultureInfo("ru-RU"), precision: 2)}", replyMarkup: Keyboard.KeyboardStart());
     }
-
-    private async Task SendMessageAsync(ChatId chatId, string message, InlineKeyboardMarkup keyboard)
-        => await BotStatic._botClient.SendMessage(chatId, message, replyMarkup: keyboard);
 }

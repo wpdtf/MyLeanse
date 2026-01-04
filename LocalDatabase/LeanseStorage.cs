@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using MyLeanse.LocalDatabase.Domain;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace MyLeanse.LocalDatabase;
@@ -19,17 +20,22 @@ public class LeanseStorage
         EnsureFileExists();
     }
 
-    public void Clear()
+    public void Clear(long userId)
     {
-        WriteAll(new List<LeanseInfo>());
+        var list = ReadAll();
+
+        list = list.Where(x => x.UserId != userId).ToList();
+
+        WriteAll(list);
     }
 
-    public void Start()
+    public void Start(long userId)
     {
         var list = ReadAll();
 
         list.Add(new LeanseInfo
         {
+            UserId = userId,
             StartTime = DateTime.Now,
             EndTime = null
         });
@@ -37,11 +43,11 @@ public class LeanseStorage
         WriteAll(list);
     }
 
-    public bool End()
+    public bool End(long userId)
     {
         var list = ReadAll();
 
-        var active = list.FirstOrDefault(x => x.EndTime == null);
+        var active = list.FirstOrDefault(x => x.UserId == userId && x.EndTime == null);
         if (active == null)
         {
             return false;
@@ -53,11 +59,11 @@ public class LeanseStorage
         return true;
     }
 
-    public bool IsActive()
+    public bool IsActive(long userId)
     {
         var list = ReadAll();
 
-        var active = list.FirstOrDefault(x => x.EndTime == null);
+        var active = list.FirstOrDefault(x => x.UserId == userId && x.EndTime == null);
         if (active == null)
         {
             return false;
@@ -66,9 +72,11 @@ public class LeanseStorage
         return true;
     }
 
-    public TimeSpan Info()
+    public TimeSpan Info(long userId)
     {
         var list = ReadAll();
+        list = list.Where(x => x.UserId == userId).ToList();
+
         var now = DateTime.Now;
 
         TimeSpan total = TimeSpan.Zero;

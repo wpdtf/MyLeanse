@@ -1,11 +1,12 @@
 ﻿using MyLeanse.CallbackService;
+using MyLeanse.Infrastructure.Domain;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace MyLeanse;
+namespace MyLeanse.Infrastructure;
 
 public class BotService(ILogger<BotService> logger, 
                         MessageCallback messageCallback, 

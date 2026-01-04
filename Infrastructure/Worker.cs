@@ -1,4 +1,4 @@
-namespace MyLeanse;
+namespace MyLeanse.Infrastructure;
 
 public class Worker (ILogger<Worker> logger, BotService botService) : BackgroundService
 {

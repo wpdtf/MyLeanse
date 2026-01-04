@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot;
 
-namespace MyLeanse;
+namespace MyLeanse.Infrastructure.Domain;
 
 public class BotStatic
 {

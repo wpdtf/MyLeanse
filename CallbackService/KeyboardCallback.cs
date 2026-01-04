@@ -1,64 +1,64 @@
 ﻿using Humanizer;
+using MyLeanse.CallbackService.Domain;
+using MyLeanse.Infrastructure;
 using MyLeanse.LocalDatabase;
 using System.Globalization;
-using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace MyLeanse.CallbackService;
 
-public class KeyboardCallback(LeanseStorage leanseStorage)
+public class KeyboardCallback(LeanseStorage leanseStorage, MessageSendAsync messageSendAsync)
 {
     private readonly LeanseStorage _leanseStorage = leanseStorage;
+    private readonly MessageSendAsync _messageSendAsync = messageSendAsync;
 
     public async Task ExecuteAsync(Update update)
     {
-        if (update.CallbackQuery.Message.From.Id == 5608566941)
-            switch (update.CallbackQuery.Data)
-            {
-                case "startLense":
-                    {
-                        await StartTimeAsync(update);
-                        return;
-                    }
-                case "stopLense":
-                    {
-                        await EndTimeAsync(update);
-                        return;
-                    }
-                case "aboutInfo":
-                    {
-                        await SendMessageAsync(update.CallbackQuery.Message.Date.ToLocalTime(),
-                                update.CallbackQuery.Message.Chat.Id,
-                                update.CallbackQuery.Message.MessageId,
-                                update.CallbackQuery.Message.Text,
-                                $"Дополнительная информация",
-                                Keyboard.KeyboardAboutInfo());
-                        return;
-                    }
-                case "infoLeanse":
-                    {
-                        await MenuAsync(update);
-                        return;
-                    }
-                case "createLeanse":
-                    {
-                        await ClearLeanseAsync(update);
-                        return;
-                    }
-                case "menu":
-                    {
-                        await MenuAsync(update);
-                        return;
-                    }
-            }
+        switch (update.CallbackQuery.Data)
+        {
+            case "startLense":
+                {
+                    await StartTimeAsync(update);
+                    return;
+                }
+            case "stopLense":
+                {
+                    await EndTimeAsync(update);
+                    return;
+                }
+            case "aboutInfo":
+                {
+                    await _messageSendAsync.CheckEditMessageText(update.CallbackQuery.Message.Date.ToLocalTime(),
+                            update.CallbackQuery.Message.Chat.Id,
+                            update.CallbackQuery.Message.MessageId,
+                            update.CallbackQuery.Message.Text,
+                            $"Дополнительная информация",
+                            Keyboard.KeyboardAboutInfo());
+                    return;
+                }
+            case "infoLeanse":
+                {
+                    await MenuAsync(update);
+                    return;
+                }
+            case "createLeanse":
+                {
+                    await ClearLeanseAsync(update);
+                    return;
+                }
+            case "menu":
+                {
+                    await MenuAsync(update);
+                    return;
+                }
+        }
     }
 
     public async Task StartTimeAsync(Update update)
     {
-        var result = _leanseStorage.IsActive();
+        var result = _leanseStorage.IsActive(update.CallbackQuery.From.Id);
         var message = "";
-        var info = _leanseStorage.Info();
+        var info = _leanseStorage.Info(update.CallbackQuery.From.Id);
 
         if (result)
         {
@@ -66,11 +66,11 @@ public class KeyboardCallback(LeanseStorage leanseStorage)
         }
         else
         {
-            _leanseStorage.Start();
+            _leanseStorage.Start(update.CallbackQuery.From.Id);
             message = $"Линзы надеты!\nЛинзы используются: {info.Humanize(culture: new CultureInfo("ru-RU"), precision: 2)}";
         }
 
-        await SendMessageAsync(update.CallbackQuery.Message.Date.ToLocalTime(),
+        await _messageSendAsync.CheckEditMessageText(update.CallbackQuery.Message.Date.ToLocalTime(),
                                 update.CallbackQuery.Message.Chat.Id,
                                 update.CallbackQuery.Message.MessageId,
                                 update.CallbackQuery.Message.Text,
@@ -80,9 +80,9 @@ public class KeyboardCallback(LeanseStorage leanseStorage)
 
     public async Task EndTimeAsync(Update update)
     {
-        var result = _leanseStorage.End();
+        var result = _leanseStorage.End(update.CallbackQuery.From.Id);
         var message = "";
-        var info = _leanseStorage.Info();
+        var info = _leanseStorage.Info(update.CallbackQuery.From.Id);
 
         if (result)
         {
@@ -93,7 +93,7 @@ public class KeyboardCallback(LeanseStorage leanseStorage)
             message = $"Отсутствовали надетые линзы!\nЛинзы используются: {info.Humanize(culture: new CultureInfo("ru-RU"), precision: 2)}";
         }
 
-        await SendMessageAsync(update.CallbackQuery.Message.Date.ToLocalTime(),
+        await _messageSendAsync.CheckEditMessageText(update.CallbackQuery.Message.Date.ToLocalTime(),
                                 update.CallbackQuery.Message.Chat.Id,
                                 update.CallbackQuery.Message.MessageId,
                                 update.CallbackQuery.Message.Text,
@@ -103,9 +103,9 @@ public class KeyboardCallback(LeanseStorage leanseStorage)
 
     public async Task ClearLeanseAsync(Update update)
     {
-        _leanseStorage.Clear();
+        _leanseStorage.Clear(update.CallbackQuery.From.Id);
 
-        await SendMessageAsync(update.CallbackQuery.Message.Date.ToLocalTime(),
+        await _messageSendAsync.CheckEditMessageText(update.CallbackQuery.Message.Date.ToLocalTime(),
                                 update.CallbackQuery.Message.Chat.Id,
                                 update.CallbackQuery.Message.MessageId,
                                 update.CallbackQuery.Message.Text,
@@ -115,25 +115,13 @@ public class KeyboardCallback(LeanseStorage leanseStorage)
 
     public async Task MenuAsync(Update update)
     {
-        var info = _leanseStorage.Info();
+        var info = _leanseStorage.Info(update.CallbackQuery.From.Id);
 
-        await SendMessageAsync(update.CallbackQuery.Message.Date.ToLocalTime(),
+        await _messageSendAsync.CheckEditMessageText(update.CallbackQuery.Message.Date.ToLocalTime(),
                                 update.CallbackQuery.Message.Chat.Id,
                                 update.CallbackQuery.Message.MessageId,
                                 update.CallbackQuery.Message.Text,
                                 $"Меню\nЛинзы используются: {info.Humanize(culture: new CultureInfo("ru-RU"), precision: 2)}",
                                 Keyboard.KeyboardStart());
-    }
-
-    private async Task SendMessageAsync(DateTime sendTime, ChatId chatId, int messageId, string oldMessage, string message, InlineKeyboardMarkup keyboard)
-    {
-        if (sendTime > DateTime.Now.AddHours(-12) && oldMessage != message)
-        {
-            await BotStatic._botClient.EditMessageText(chatId, messageId, message, replyMarkup: keyboard);
-        }
-        else
-        {
-            await BotStatic._botClient.SendMessage(chatId, message, replyMarkup: keyboard);
-        }
     }
 }
