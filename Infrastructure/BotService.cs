@@ -20,7 +20,7 @@ public class BotService(ILogger<BotService> logger,
 
     private ReceiverOptions _receiverOptions;
 
-    public async Task BotStartAsync(CancellationToken cancellationToken)
+    public async Task BotStartAsync(HttpClient httpClient, CancellationToken cancellationToken)
     {
         var token = _configuration.GetValue<string>("Token");
 
@@ -33,16 +33,17 @@ public class BotService(ILogger<BotService> logger,
 
         var handler = new SocketsHttpHandler
         {
-            PooledConnectionLifetime = TimeSpan.FromMinutes(10),
-            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),
-            KeepAlivePingDelay = TimeSpan.FromMinutes(1),
-            KeepAlivePingTimeout = TimeSpan.FromSeconds(30),
-            KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always
-        };
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+            EnableMultipleHttp2Connections = true,
+            UseCookies = false,
+            UseProxy = false,
 
-        var httpClient = new HttpClient(handler)
-        {
-            Timeout = TimeSpan.FromSeconds(100)
+            ConnectTimeout = TimeSpan.FromSeconds(30),
+
+            KeepAlivePingDelay = TimeSpan.FromSeconds(30),
+            KeepAlivePingTimeout = TimeSpan.FromSeconds(15),
+            KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always
         };
 
         BotStatic._botClient = new TelegramBotClient(token, httpClient);
@@ -52,12 +53,27 @@ public class BotService(ILogger<BotService> logger,
             AllowedUpdates =
             [
                 UpdateType.Message, UpdateType.CallbackQuery,
-            ]
+            ],
+            DropPendingUpdates = true
         };
 
         BotStatic._botClient.StartReceiving(UpdateAsync, Error, _receiverOptions, cancellationToken);
 
-        await Task.Delay(1800000);
+        await WaitForCancellationAsync(cancellationToken);
+    }
+
+    private async Task WaitForCancellationAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            cancellationToken.Register(() => tcs.SetResult(true));
+            await tcs.Task;
+        }
+        catch (TaskCanceledException)
+        {
+            _logger.LogInformation("Bot service is stopping...");
+        }
     }
 
     private async Task UpdateAsync(ITelegramBotClient client, Update update, CancellationToken token)
