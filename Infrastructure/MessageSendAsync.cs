@@ -1,13 +1,16 @@
-﻿using Telegram.Bot.Types.ReplyMarkups;
-using Telegram.Bot.Types;
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Types.Enums;
+﻿using MyLeanse.Infrastructure.Domain;
 using Telegram.Bot;
-using MyLeanse.Infrastructure.Domain;
-using static System.Net.Mime.MediaTypeNames;
+using Telegram.Bot.Exceptions;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace MyLeanse.Infrastructure;
 
+/// <summary>
+/// Модель для отправки сообщений
+/// </summary>
+/// <remarks> учитываю ограничения на количество отправок в секунду </remarks>
 public class MessageSendAsync
 {
     private int _messagesSentThisSecond = 0;

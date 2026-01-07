@@ -2,11 +2,15 @@
 
 namespace MyLeanse.CallbackService.Domain;
 
-class Keyboard
+/// <summary>
+/// Класс со статичными моделями возможных вариаций клавиатур
+/// </summary>
+public class Keyboard
 {
-    public static InlineKeyboardMarkup KeyboardStart()
-    {
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
+    /// <summary>
+    /// Основаная клавиатура бота
+    /// </summary>
+    public static InlineKeyboardMarkup KeyboardMain { get; } = new InlineKeyboardMarkup(
         new List<InlineKeyboardButton[]>()
         {
                 new InlineKeyboardButton[]
@@ -25,12 +29,10 @@ class Keyboard
 
         });
 
-        return inlineKeyboard;
-    }
-
-    public static InlineKeyboardMarkup KeyboardAboutInfo()
-    {
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
+    /// <summary>
+    /// Клавиатура для блока с дополнительными командами
+    /// </summary>
+    public static InlineKeyboardMarkup KeyboardAboutInfo { get; } = new InlineKeyboardMarkup(
         new List<InlineKeyboardButton[]>()
         {
                 new InlineKeyboardButton[]
@@ -42,7 +44,4 @@ class Keyboard
                     InlineKeyboardButton.WithCallbackData("Назад", "menu"),
                 },
         });
-
-        return inlineKeyboard;
-    }
 }

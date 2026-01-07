@@ -8,6 +8,13 @@ using Telegram.Bot.Types.Enums;
 
 namespace MyLeanse.Infrastructure;
 
+/// <summary>
+/// Сервис для старта бота
+/// </summary>
+/// <param name="logger">логирование</param>
+/// <param name="messageCallback">Класс для обработки получения сообщений и т.п</param>
+/// <param name="keyboardCallback">Класс для обработки получения событий клавиатур</param>
+/// <param name="configuration">Настройки</param>
 public class BotService(ILogger<BotService> logger, 
                         MessageCallback messageCallback, 
                         KeyboardCallback keyboardCallback,
@@ -30,21 +37,6 @@ public class BotService(ILogger<BotService> logger,
 
             return;
         }
-
-        var handler = new SocketsHttpHandler
-        {
-            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
-            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
-            EnableMultipleHttp2Connections = true,
-            UseCookies = false,
-            UseProxy = false,
-
-            ConnectTimeout = TimeSpan.FromSeconds(30),
-
-            KeepAlivePingDelay = TimeSpan.FromSeconds(30),
-            KeepAlivePingTimeout = TimeSpan.FromSeconds(15),
-            KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always
-        };
 
         BotStatic._botClient = new TelegramBotClient(token, httpClient);
         

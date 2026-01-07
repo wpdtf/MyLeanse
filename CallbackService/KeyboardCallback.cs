@@ -7,6 +7,11 @@ using Telegram.Bot.Types;
 
 namespace MyLeanse.CallbackService;
 
+/// <summary>
+/// Класс для обработки команд клавиатуры
+/// </summary>
+/// <param name="leanseStorage">хранилище в json</param>
+/// <param name="messageSendAsync">класс отправки сообщений</param>
 public class KeyboardCallback(LeanseStorage leanseStorage, MessageSendAsync messageSendAsync)
 {
     private readonly LeanseStorage _leanseStorage = leanseStorage;
@@ -31,9 +36,9 @@ public class KeyboardCallback(LeanseStorage leanseStorage, MessageSendAsync mess
                     await _messageSendAsync.CheckEditMessageText(update.CallbackQuery.Message.Date.ToLocalTime(),
                             update.CallbackQuery.Message.Chat.Id,
                             update.CallbackQuery.Message.MessageId,
-                            update.CallbackQuery.Message.Text,
+                            update.CallbackQuery.Message.Text ?? "",
                             $"Дополнительная информация",
-                            Keyboard.KeyboardAboutInfo());
+                            Keyboard.KeyboardAboutInfo);
                     return;
                 }
             case "infoLeanse":
@@ -73,9 +78,9 @@ public class KeyboardCallback(LeanseStorage leanseStorage, MessageSendAsync mess
         await _messageSendAsync.CheckEditMessageText(update.CallbackQuery.Message.Date.ToLocalTime(),
                                 update.CallbackQuery.Message.Chat.Id,
                                 update.CallbackQuery.Message.MessageId,
-                                update.CallbackQuery.Message.Text,
+                                update.CallbackQuery.Message.Text ?? "",
                                 message,
-                                Keyboard.KeyboardStart());
+                                Keyboard.KeyboardMain);
     }
 
     public async Task EndTimeAsync(Update update)
@@ -96,9 +101,9 @@ public class KeyboardCallback(LeanseStorage leanseStorage, MessageSendAsync mess
         await _messageSendAsync.CheckEditMessageText(update.CallbackQuery.Message.Date.ToLocalTime(),
                                 update.CallbackQuery.Message.Chat.Id,
                                 update.CallbackQuery.Message.MessageId,
-                                update.CallbackQuery.Message.Text,
+                                update.CallbackQuery.Message.Text ?? "",
                                 message,
-                                Keyboard.KeyboardStart());
+                                Keyboard.KeyboardMain);
     }
 
     public async Task ClearLeanseAsync(Update update)
@@ -108,9 +113,9 @@ public class KeyboardCallback(LeanseStorage leanseStorage, MessageSendAsync mess
         await _messageSendAsync.CheckEditMessageText(update.CallbackQuery.Message.Date.ToLocalTime(),
                                 update.CallbackQuery.Message.Chat.Id,
                                 update.CallbackQuery.Message.MessageId,
-                                update.CallbackQuery.Message.Text,
+                                update.CallbackQuery.Message.Text ?? "",
                                 $"Линзы удалены",
-                                Keyboard.KeyboardStart());
+                                Keyboard.KeyboardMain);
     }
 
     public async Task MenuAsync(Update update)
@@ -120,8 +125,8 @@ public class KeyboardCallback(LeanseStorage leanseStorage, MessageSendAsync mess
         await _messageSendAsync.CheckEditMessageText(update.CallbackQuery.Message.Date.ToLocalTime(),
                                 update.CallbackQuery.Message.Chat.Id,
                                 update.CallbackQuery.Message.MessageId,
-                                update.CallbackQuery.Message.Text,
+                                update.CallbackQuery.Message.Text ?? "",
                                 $"Меню\nЛинзы используются: {info.Humanize(culture: new CultureInfo("ru-RU"), precision: 2)}",
-                                Keyboard.KeyboardStart());
+                                Keyboard.KeyboardMain);
     }
 }

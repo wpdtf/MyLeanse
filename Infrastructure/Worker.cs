@@ -1,5 +1,6 @@
 namespace MyLeanse.Infrastructure;
 
+//TODO: идея с воркером который бы при падении бота сразу его перезапускал, хайповая, но это и докер делать будет, переписать
 public class Worker (ILogger<Worker> logger, BotService botService) : BackgroundService
 {
     private readonly ILogger<Worker> _logger = logger;
@@ -7,19 +8,30 @@ public class Worker (ILogger<Worker> logger, BotService botService) : Background
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var httpClient = new HttpClient
+        var handler = new SocketsHttpHandler
         {
-            Timeout = TimeSpan.FromSeconds(60)
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+            EnableMultipleHttp2Connections = true,
+            UseCookies = false,
+            UseProxy = false,
+
+            ConnectTimeout = TimeSpan.FromSeconds(30),
+
+            KeepAlivePingDelay = TimeSpan.FromSeconds(30),
+            KeepAlivePingTimeout = TimeSpan.FromSeconds(15),
+            KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always
+        };
+
+        var httpClient = new HttpClient(handler)
+        {
+            Timeout = TimeSpan.FromSeconds(120)
         };
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            if (_logger.IsEnabled(LogLevel.Information))
-            {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-
-                await _botService.BotStartAsync(httpClient, stoppingToken);
-            }
+            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            await _botService.BotStartAsync(httpClient, stoppingToken);
             await Task.Delay(200, stoppingToken);
         }
     }

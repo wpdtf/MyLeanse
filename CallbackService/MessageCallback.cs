@@ -7,6 +7,11 @@ using Telegram.Bot.Types;
 
 namespace MyLeanse.CallbackService;
 
+/// <summary>
+/// Обработка отправки простых сообщений и команд
+/// </summary>
+/// <param name="leanseStorage">хранилище в json</param>
+/// <param name="messageSendAsync">класс отправки сообщений</param>
 public class MessageCallback(LeanseStorage leanseStorage, MessageSendAsync messageSendAsync)
 {
     private readonly LeanseStorage _leanseStorage = leanseStorage;
@@ -21,6 +26,6 @@ public class MessageCallback(LeanseStorage leanseStorage, MessageSendAsync messa
     {
         var info = _leanseStorage.Info(update.Message.From.Id);
 
-        await _messageSendAsync.SendMessage(update.Message.Chat.Id, $"Меню\nЛинзы используются: {info.Humanize(culture: new CultureInfo("ru-RU"), precision: 2)}", replyMarkup: Keyboard.KeyboardStart());
+        await _messageSendAsync.SendMessage(update.Message.Chat.Id, $"Меню\nЛинзы используются: {info.Humanize(culture: new CultureInfo("ru-RU"), precision: 2)}", replyMarkup: Keyboard.KeyboardMain);
     }
 }
