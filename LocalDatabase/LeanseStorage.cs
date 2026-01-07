@@ -16,7 +16,7 @@ public class LeanseStorage
 
     public LeanseStorage(string relativePath = "leanse.json")
     {
-        filePath = Path.Combine(AppContext.BaseDirectory, "data", relativePath);
+        filePath = Path.Combine(AppContext.BaseDirectory, relativePath);
         EnsureFileExists();
     }
 
@@ -91,6 +91,34 @@ public class LeanseStorage
         }
 
         return total;
+    }
+
+    /// <summary>
+    /// Удаляет: <br/>
+    /// 1) Все записи без EndTime старше месяца <br/>
+    /// 2) Пользователей, которые не надевали линзы больше 2 месяцев
+    /// </summary>
+    public void Cleanup()
+    {
+        var list = ReadAll();
+        var now = DateTime.UtcNow;
+
+        list = list.Where(x => !(x.EndTime == null && x.StartTime < now.AddMonths(-1))).ToList();
+
+        var lastUsageByUser = list
+            .GroupBy(x => x.UserId)
+            .Select(g => new
+            {
+                UserId = g.Key,
+                LastUsed = g.Max(x => x.EndTime ?? x.StartTime)
+            })
+            .Where(u => u.LastUsed >= now.AddMonths(-2))
+            .Select(u => u.UserId)
+            .ToHashSet();
+
+        list = list.Where(x => lastUsageByUser.Contains(x.UserId)).ToList();
+
+        WriteAll(list);
     }
 
     private List<LeanseInfo> ReadAll()
