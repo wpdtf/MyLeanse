@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types.ReplyMarkups;
 
-namespace MyLeanse.CallbackService.Domain;
+namespace MyLeanse.Handlers.Domain;
 
 /// <summary>
 /// Класс со статичными моделями возможных вариаций клавиатур
@@ -15,16 +15,16 @@ public class Keyboard
         {
                 new InlineKeyboardButton[]
                 {
-                    InlineKeyboardButton.WithCallbackData("Надел линзы 👁", "startLense"),
-                    InlineKeyboardButton.WithCallbackData("Снял линзы 🐤", "stopLense"),
+                    InlineKeyboardButton.WithCallbackData("Надел линзы 👁", "putOn"),
+                    InlineKeyboardButton.WithCallbackData("Снял линзы 🐤", "takeOff"),
                 },
                 new InlineKeyboardButton[]
                 {
-                    InlineKeyboardButton.WithCallbackData("Актуальная информация", "infoLeanse"),
+                    InlineKeyboardButton.WithCallbackData("Линзы используются? ❔", "status"),
                 },
                 new InlineKeyboardButton[]
                 {
-                    InlineKeyboardButton.WithCallbackData("Дополнительно", "aboutInfo"),
+                    InlineKeyboardButton.WithCallbackData("Дополнительно ➕", "about"),
                 },
 
         });
@@ -37,11 +37,11 @@ public class Keyboard
         {
                 new InlineKeyboardButton[]
                 {
-                    InlineKeyboardButton.WithCallbackData("Очистить историю", "createLeanse"),
+                    InlineKeyboardButton.WithCallbackData("Теперь я использую новые линзы 🆕", "new"),
                 },
                 new InlineKeyboardButton[]
                 {
-                    InlineKeyboardButton.WithCallbackData("Назад", "menu"),
+                    InlineKeyboardButton.WithCallbackData("Назад", "status"),
                 },
         });
 }

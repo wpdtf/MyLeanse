@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace MyLeanse.LocalDatabase;
 
-public class LeanseStorage
+public sealed class LeanseStorage
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -14,9 +14,9 @@ public class LeanseStorage
 
     private readonly string filePath;
 
-    public LeanseStorage(string relativePath = "leanse.json")
+    public LeanseStorage(IConfiguration configuration)
     {
-        filePath = Path.Combine(AppContext.BaseDirectory, "data", relativePath);
+        filePath = Path.Combine(AppContext.BaseDirectory, configuration.GetValue<string>("StoragePath")!);
         EnsureFileExists();
     }
 
@@ -43,20 +43,16 @@ public class LeanseStorage
         WriteAll(list);
     }
 
-    public bool End(long userId)
+    public void End(long userId)
     {
         var list = ReadAll();
 
         var active = list.FirstOrDefault(x => x.UserId == userId && x.EndTime == null);
         if (active == null)
-        {
-            return false;
-        }
+            return;
 
-        active.EndTime = DateTime.Now;
+        active!.EndTime = DateTime.Now;
         WriteAll(list);
-
-        return true;
     }
 
     public bool IsActive(long userId)
@@ -123,32 +119,41 @@ public class LeanseStorage
 
     private List<LeanseInfo> ReadAll()
     {
-        if (!File.Exists(filePath))
+        lock (this)
         {
-            return new List<LeanseInfo>();
-        }
+            if (!File.Exists(filePath))
+            {
+                return new List<LeanseInfo>();
+            }
 
-        var json = File.ReadAllText(filePath);
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return new List<LeanseInfo>();
-        }
+            var json = File.ReadAllText(filePath);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return new List<LeanseInfo>();
+            }
 
-        return JsonSerializer.Deserialize<List<LeanseInfo>>(json, JsonOptions)
-               ?? new List<LeanseInfo>();
+            return JsonSerializer.Deserialize<List<LeanseInfo>>(json, JsonOptions)
+                   ?? new List<LeanseInfo>();
+        }
     }
 
     private void WriteAll(List<LeanseInfo> list)
     {
-        var json = JsonSerializer.Serialize(list, JsonOptions);
-        File.WriteAllText(filePath, json);
+        lock (this)
+        {
+            var json = JsonSerializer.Serialize(list, JsonOptions);
+            File.WriteAllText(filePath, json);
+        }
     }
 
     private void EnsureFileExists()
     {
-        if (!File.Exists(filePath))
+        lock (this)
         {
-            WriteAll(new List<LeanseInfo>());
+            if (!File.Exists(filePath))
+            {
+                WriteAll(new List<LeanseInfo>());
+            }
         }
     }
 }

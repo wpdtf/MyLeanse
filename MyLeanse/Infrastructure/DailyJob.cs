@@ -3,9 +3,9 @@ using Quartz;
 
 namespace MyLeanse.Infrastructure;
 
-class DailyJob(ILogger<Worker> logger, LeanseStorage leanseStorage) : IJob
+class DailyJob(ILogger<DailyJob> logger, LeanseStorage leanseStorage) : IJob
 {
-    private readonly ILogger<Worker> _logger = logger;
+    private readonly ILogger<DailyJob> _logger = logger;
     private readonly LeanseStorage _leanseStorage = leanseStorage;
 
     public Task Execute(IJobExecutionContext context)

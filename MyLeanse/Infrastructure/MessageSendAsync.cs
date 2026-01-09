@@ -1,7 +1,5 @@
-﻿using MyLeanse.Infrastructure.Domain;
-using Telegram.Bot;
+﻿using Telegram.Bot;
 using Telegram.Bot.Exceptions;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -11,37 +9,39 @@ namespace MyLeanse.Infrastructure;
 /// Модель для отправки сообщений
 /// </summary>
 /// <remarks> учитываю ограничения на количество отправок в секунду </remarks>
-public class MessageSendAsync
+public class MessageSendAsync(ITelegramBotClient bot)
 {
+    private readonly ITelegramBotClient _bot = bot;
+
     private int _messagesSentThisSecond = 0;
     private DateTime _lastResetTime = DateTime.UtcNow;
 
     private List<string> listEmoje = new List<string>() { "😅", "😇", "🥰", "😍", "😏", "😊" };
     private Random rnd = new Random();
 
-    public async Task CheckEditMessageText(DateTime sendTime, ChatId chatId, int messageId, string oldMessage, string message, InlineKeyboardMarkup keyboard)
+    public async Task CheckEditMessageText(DateTime sendTime, long chatId, int messageId, string oldMessage, string message, InlineKeyboardMarkup keyboard, CancellationToken ct)
     {
         if (sendTime > DateTime.Now.AddHours(-45))
         {
             if (oldMessage == message)
                 message += "\n" + listEmoje[rnd.Next(listEmoje.Count)];
 
-            await EditMessageText(chatId.Identifier.Value, messageId, message, keyboard);
+            await EditMessageText(chatId, messageId, message, ct, keyboard);
         }
         else
         {
-            await SendMessage(chatId.Identifier.Value, message, replyMarkup: keyboard);
+            await SendMessage(chatId, message, ct, replyMarkup: keyboard);
         }
     }
 
-    public async Task SendMessage(long chatId, string message, ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = null)
+    public async Task SendMessage(long chatId, string message, CancellationToken ct, ParseMode parseMode = ParseMode.None, InlineKeyboardMarkup? replyMarkup = null)
     {
-        await SendMessageWithRateLimit(BotStatic._botClient.SendMessage(chatId, message, parseMode, replyMarkup: replyMarkup), 20);
+        await SendMessageWithRateLimit(_bot.SendMessage(chatId, message, parseMode, replyMarkup: replyMarkup, cancellationToken: ct), 20);
     }
 
-    public async Task EditMessageText(long chatId, int messageId, string newText, InlineKeyboardMarkup? replyMarkup = null)
+    public async Task EditMessageText(long chatId, int messageId, string newText, CancellationToken ct, InlineKeyboardMarkup? replyMarkup = null)
     {
-        await SendMessageWithRateLimit(BotStatic._botClient.EditMessageText(chatId, messageId, newText, replyMarkup: replyMarkup), 20);
+        await SendMessageWithRateLimit(_bot.EditMessageText(chatId, messageId, newText, cancellationToken: ct, replyMarkup: replyMarkup), 20);
     }
 
     private async Task SendMessageWithRateLimit(Task sendMessage, int maxRequestPerSecond = 20)
