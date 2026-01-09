@@ -23,7 +23,27 @@ builder.Services.AddSingleton<ITelegramBotClient>(sp =>
     if (token == null)
         throw new Exception("Отсутствует токен");
 
-    return new Telegram.Bot.TelegramBotClient(token);
+    var handler = new SocketsHttpHandler
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+        EnableMultipleHttp2Connections = true,
+        UseCookies = false,
+        UseProxy = false,
+
+        ConnectTimeout = TimeSpan.FromSeconds(30),
+
+        KeepAlivePingDelay = TimeSpan.FromSeconds(30),
+        KeepAlivePingTimeout = TimeSpan.FromSeconds(15),
+        KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always
+    };
+
+    var httpClient = new HttpClient(handler)
+    {
+        Timeout = TimeSpan.FromSeconds(120)
+    };
+
+    return new Telegram.Bot.TelegramBotClient(token, httpClient);
 });
 
 var app = builder.Build();
